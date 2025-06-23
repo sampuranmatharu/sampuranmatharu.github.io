@@ -68,114 +68,131 @@ document.addEventListener('DOMContentLoaded', () => {
     // } 
      ];
 
-    function setupScrubAnimation(config) {
-        const { sectionId, projectData, progressBarId } = config;
-        const section = document.querySelector(sectionId);
-        if (!section) return;
+function setupScrubAnimation(config) {
+    const {
+        sectionId,
+        projectData,
+        progressBarId
+    } = config;
+    const section = document.querySelector(sectionId);
+    if (!section) return;
 
-        // Check if we are on a mobile device
-        if (window.matchMedia("(max-width: 900px)").matches) {
-            // --- MOBILE LAYOUT ---
-            // This logic builds the mobile-friendly vertical layout.
-            const mobileContainer = section.querySelector('.portfolio-mobile-container');
-            if (!mobileContainer) return;
+    // Check if we are on a mobile device
+    if (window.matchMedia("(max-width: 900px)").matches) {
+        // --- MOBILE LAYOUT ---
+        const mobileContainer = section.querySelector('.portfolio-mobile-container');
+        if (!mobileContainer) return;
 
-            projectData.forEach(project => {
-                if (project.images.length === 0) return;
+        projectData.forEach(project => {
+            if (project.images.length === 0) return;
+            const card = document.createElement('div');
+            card.className = 'mobile-project-card';
+            const img = document.createElement('img');
+            img.src = project.images[0];
+            img.alt = project.title;
+            card.appendChild(img);
+            const title = document.createElement('h3');
+            title.textContent = project.title;
+            card.appendChild(title);
+            const description = document.createElement('p');
+            description.textContent = project.description;
+            card.appendChild(description);
+            mobileContainer.appendChild(card);
+        });
 
-                const card = document.createElement('div');
-                card.className = 'mobile-project-card';
+    } else {
+        // --- DESKTOP SCROLLING LAYOUT ---
+        const imageContainer = section.querySelector('.portfolio-image-card');
+        const textContainer = section.querySelector('.portfolio-text-content');
+        const progressBar = section.querySelector(progressBarId);
+        const grid = section.querySelector('.portfolio-grid');
 
-                // Add only the first image for the mobile card
-                const img = document.createElement('img');
-                img.src = project.images[0];
-                img.alt = project.title;
-                card.appendChild(img);
+        if (!imageContainer || !textContainer || !grid) return;
 
-                // Add the project title
-                const title = document.createElement('h3');
-                title.textContent = project.title;
-                card.appendChild(title);
-                
-                // Add the project description
-                const description = document.createElement('p');
-                description.textContent = project.description;
-                card.appendChild(description);
+        const allProjectImages = [];
 
-                mobileContainer.appendChild(card);
+        // Populate the DOM with images and text for the animation
+        projectData.forEach((project) => {
+            const textSection = document.createElement('div');
+            textSection.className = "project-text-section";
+            textSection.innerHTML = `<h3>${project.title}</h3><p>${project.description}</p>`;
+            textContainer.appendChild(textSection);
+
+            const currentProjectImages = [];
+            project.images.forEach((imageUrl) => {
+                const imgElement = document.createElement('img');
+                imgElement.src = imageUrl;
+                imgElement.alt = project.title;
+                imageContainer.appendChild(imgElement);
+                currentProjectImages.push(imgElement);
             });
+            allProjectImages.push(currentProjectImages);
+        });
 
-        } else {
-            // --- DESKTOP SCROLLING LAYOUT ---
-            const imageContainer = section.querySelector('.portfolio-image-card');
-            const textContainer = section.querySelector('.portfolio-text-content');
-            const progressBar = section.querySelector(progressBarId);
-            const grid = section.querySelector('.portfolio-grid');
+        // --- NEW CODE STARTS HERE ---
+        // Manually make the very first text and image visible before the animation starts.
+        // This prevents the "black box" on initial scroll.
+        const firstText = textContainer.querySelector('.project-text-section:first-child');
+        const firstImage = imageContainer.querySelector('img:first-child');
 
-            if (!imageContainer || !textContainer || !grid) return;
+        if (firstText) {
+            firstText.style.opacity = 1;
+        }
+        if (firstImage) {
+            firstImage.style.opacity = 1;
+        }
+        // --- NEW CODE ENDS HERE ---
 
-            const allProjectImages = [];
-            
-            // Populate the DOM with images and text for the animation
-            projectData.forEach((project) => {
-                const textSection = document.createElement('div');
-                textSection.className = "project-text-section";
-                textSection.innerHTML = `<h3>${project.title}</h3><p>${project.description}</p>`;
-                textContainer.appendChild(textSection);
+        // Set up the GSAP timeline for the scroll animation
+        const textSections = gsap.utils.toArray(section.querySelectorAll('.project-text-section'));
+        const scrollDistance = (projectData.length * 1000) + 1000;
+        const header = document.getElementById('main-header');
+        const headerHeight = header ? header.offsetHeight : 0;
 
-                const currentProjectImages = [];
-                project.images.forEach((imageUrl) => {
-                    const imgElement = document.createElement('img');
-                    imgElement.src = imageUrl;
-                    imgElement.alt = project.title;
-                    imageContainer.appendChild(imgElement);
-                    currentProjectImages.push(imgElement);
-                });
-                allProjectImages.push(currentProjectImages);
-            });
-
-            // Set up the GSAP timeline for the scroll animation
-            const textSections = gsap.utils.toArray(section.querySelectorAll('.project-text-section'));
-            const scrollDistance = (projectData.length * 1000) + 1000;
-            const header = document.getElementById('main-header');
-            const headerHeight = header ? header.offsetHeight : 0;
-
-            const masterTimeline = gsap.timeline({
-                scrollTrigger: {
-                    trigger: grid,
-                    start: `top ${headerHeight}px`,
-                    end: `+=${scrollDistance}`,
-                    pin: true,
-                    scrub: 1,
-                }
-            });
-
-            if (progressBar) {
-                masterTimeline.to(progressBar, { scaleX: 1, ease: 'none' }, 0);
+        const masterTimeline = gsap.timeline({
+            scrollTrigger: {
+                trigger: grid,
+                start: `top ${headerHeight}px`,
+                end: `+=${scrollDistance}`,
+                pin: true,
+                scrub: 1,
             }
+        });
 
-            projectData.forEach((project, index) => {
-                const currentText = textSections[index];
-                const currentImages = allProjectImages[index];
+        if (progressBar) {
+            masterTimeline.to(progressBar, {
+                scaleX: 1,
+                ease: 'none'
+            }, 0);
+        }
 
+        projectData.forEach((project, index) => {
+            const currentText = textSections[index];
+            const currentImages = allProjectImages[index];
+
+            // Only fade IN elements that are NOT the first one (since it's already visible)
+            if (index > 0) {
                 masterTimeline.to(currentText, { opacity: 1, duration: 0.3 });
                 masterTimeline.to(currentImages[0], { opacity: 1, duration: 0.3 }, "<");
+            }
 
-                if (currentImages.length > 1) {
-                    for (let i = 1; i < currentImages.length; i++) {
-                        masterTimeline.to(currentImages[i - 1], { opacity: 0, duration: 0.2 }, "+=0.6");
-                        masterTimeline.to(currentImages[i], { opacity: 1, duration: 0.2 }, "<");
-                    }
+            // Handle cycling through multiple images within a single project
+            if (currentImages.length > 1) {
+                for (let i = 1; i < currentImages.length; i++) {
+                    masterTimeline.to(currentImages[i - 1], { opacity: 0, duration: 0.2 }, "+=0.6");
+                    masterTimeline.to(currentImages[i], { opacity: 1, duration: 0.2 }, "<");
                 }
+            }
 
-                if (index < projectData.length - 1) {
-                    masterTimeline.to(currentText, { opacity: 0, duration: 0.3 }, "+=0.8");
-                    masterTimeline.to(currentImages[currentImages.length - 1], { opacity: 0, duration: 0.3 }, "<");
-                }
-            });
-            masterTimeline.to({}, { duration: 1.5 }); // Add extra space at the end
-        }
+            // Fade OUT the current project to make way for the next one
+            if (index < projectData.length - 1) {
+                masterTimeline.to(currentText, { opacity: 0, duration: 0.3 }, "+=0.8");
+                masterTimeline.to(currentImages[currentImages.length - 1], { opacity: 0, duration: 0.3 }, "<");
+            }
+        });
+        masterTimeline.to({}, { duration: 1.5 }); // Add extra space at the end
     }
+}
 
     // Initialize the animations for both sections
     setupScrubAnimation({ sectionId: '#artworks', projectData: artworkProjects, progressBarId: '#artworks-progress .progress' });
