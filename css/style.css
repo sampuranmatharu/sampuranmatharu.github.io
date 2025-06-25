@@ -522,6 +522,7 @@ body {
     .education-block {
         justify-content: flex-start; /* Align education blocks to the left */
         justify-content: center;
+        margin-left: 0;
         text-align: left;
         align-items: flex-start;
 
