@@ -523,6 +523,7 @@ body {
         justify-content: flex-start; /* Align education blocks to the left */
         justify-content: center;
         margin-left: 0;
+        margin-right: 3rem;
         text-align: left;
         align-items: flex-start;
 
