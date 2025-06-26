@@ -1,5 +1,3 @@
-// js/main.js
-
 document.addEventListener('DOMContentLoaded', () => {
 
     gsap.registerPlugin(ScrollTrigger);
@@ -129,7 +127,6 @@ function setupScrubAnimation(config) {
             allProjectImages.push(currentProjectImages);
         });
 
-        // --- NEW CODE STARTS HERE ---
         // Manually make the very first text and image visible before the animation starts.
         // This prevents the "black box" on initial scroll.
         const firstText = textContainer.querySelector('.project-text-section:first-child');
@@ -141,8 +138,7 @@ function setupScrubAnimation(config) {
         if (firstImage) {
             firstImage.style.opacity = 1;
         }
-        // --- NEW CODE ENDS HERE ---
-
+        
         // Set up the GSAP timeline for the scroll animation
         const textSections = gsap.utils.toArray(section.querySelectorAll('.project-text-section'));
         const scrollDistance = (projectData.length * 1000) + 1000;
@@ -156,6 +152,10 @@ function setupScrubAnimation(config) {
                 end: `+=${scrollDistance}`,
                 pin: true,
                 scrub: 1,
+                // FIX: This prevents the "jump" or "flicker" when scrolling fast into the pinned section.
+                // It makes ScrollTrigger apply the pin slightly *before* the trigger point is reached,
+                // ensuring a smooth entrance.
+                anticipatePin: 1
             }
         });
 
