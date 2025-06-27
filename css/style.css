@@ -529,8 +529,19 @@ body {
 
     }
     .education-logo img {
-    height: 70px;
-    border-radius: 12px;
+        height: 70px;
+        border-radius: 12px;
+    }
+    .education-school {
+        font-size: 1.2rem;
+        font-weight: 600;
+        margin: 0;
+        color: var(--dark-text);
+    }
+    .education-details {
+        color: var(--light-text);
+        font-size: 0.8rem;
+        margin: 0;
     }
     .footer-links {
         flex-direction: column;
