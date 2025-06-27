@@ -528,6 +528,10 @@ body {
         align-items: flex-start;
 
     }
+    .education-logo img {
+    height: 70px;
+    border-radius: 12px;
+    }
     .footer-links {
         flex-direction: column;
         gap: 1rem;
