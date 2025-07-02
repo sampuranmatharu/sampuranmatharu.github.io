@@ -226,6 +226,9 @@ function setupScrubAnimation(config) {
     let isDragging = false, currentScale = 1, minScale = 1, maxScale = 4;
     let startPos = { x: 0, y: 0 }, currentTranslate = { x: 0, y: 0 }, startTranslate = { x: 0, y: 0 };
 
+    const tapZoomScale = 2; 
+    let isTapZoomed = false;
+
     function openLightbox(src) {
         lightboxImg.src = src;
         lightbox.classList.add('active');
@@ -239,12 +242,33 @@ function setupScrubAnimation(config) {
         setTimeout(() => {
             currentScale = 1;
             currentTranslate = { x: 0, y: 0 };
+            isTapZoomed = false;
             lightboxContent.style.transform = 'translate(0px, 0px)';
             lightboxImg.style.transform = 'scale(1)';
             lightboxImg.classList.remove('is-pannable', 'is-dragging');
             lightboxContent.classList.remove('is-dragging');
         }, 300);
         removeLightboxEventListeners();
+    }
+
+    function handleImageClick() {
+        // If the image is currently tap-zoomed OR manually zoomed and at the tapZoomScale
+        if (isTapZoomed || currentScale === tapZoomScale) {
+            // Unzoom
+            currentScale = minScale;
+            currentTranslate = { x: 0, y: 0 }; // Reset pan when unzooming
+            lightboxContent.style.transform = 'translate(0px, 0px)';
+            isTapZoomed = false;
+            lightboxImg.classList.remove('is-pannable');
+        } else {
+            // Zoom in
+            currentScale = tapZoomScale;
+            currentTranslate = { x: 0, y: 0 }; // Reset pan when tap-zooming in
+            lightboxContent.style.transform = 'translate(0px, 0px)';
+            isTapZoomed = true;
+            lightboxImg.classList.add('is-pannable');
+        }
+        lightboxImg.style.transform = `scale(${currentScale})`;
     }
 
     function handleWheel(e) {
@@ -289,7 +313,7 @@ function setupScrubAnimation(config) {
     }
 
     function handleKeydown(e) { if (e.key === "Escape") closeLightbox(); }
-    function handleClickOutside(e) { if (e.target === lightbox) closeLightbox(); }
+    function handleClickOutside(e) { if (e.target === lightbox || e.target.classList.contains('close-lightbox')) closeLightbox(); }
 
     function addLightboxEventListeners() {
         document.addEventListener('keydown', handleKeydown);
@@ -299,6 +323,7 @@ function setupScrubAnimation(config) {
         lightboxContent.addEventListener('mousedown', startDrag);
         window.addEventListener('mousemove', onDrag);
         window.addEventListener('mouseup', endDrag);
+        lightboxImg.addEventListener('click', handleImageClick); 
     }
 
     function removeLightboxEventListeners() {
@@ -310,5 +335,6 @@ function setupScrubAnimation(config) {
         lightboxContent.removeEventListener('mousedown', startDrag);
         window.removeEventListener('mousemove', onDrag);
         window.removeEventListener('mouseup', endDrag);
+        lightboxImg.removeEventListener('click', handleImageClick);
     }
 });
